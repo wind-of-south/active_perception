@@ -1,0 +1,65 @@
+B2 FAST-LIO 单圈回环初步测量
+============================
+用途：记录 B2 单圈 FAST-LIO 离线运行的时间戳质量、轨迹、地图和
+起终点静止段之间的位移估计。FAST-LIO 没有回环优化；此处不等同
+于最终闭环验收，也不是独立真值评测。
+
+输入包：/home/xiaowu/active_perception/交付/B2_teleop_loop_tilt0_2026-09-23
+FAST-LIO 输出包：/home/xiaowu/active_perception/B2_analysis/B2_fastlio_odom_saved
+FAST-LIO 配置：b2_mid360.yaml；/clock 回放，use_sim_time=true；
+固定名义 IMU-LiDAR 外参，关闭在线外参估计；PCD 通过 /map_save 写出。
+
+Odometry 样本数：1710
+输出坐标系：camera_init -> body
+header 时间覆盖：0.399597 至 171.299191 秒（相对 B2 首个 LiDAR header）
+输出消息原始顺序中的 header 非递增数：85
+原始消息顺序 header 间隔最小/最大：-1.800894 / 1.901261 秒
+按 header 时间排序后，采样间隔均值/中位数/最小/最大：
+  0.100000 / 0.099840 /
+  0.099241 / 0.101597 秒
+输入 LiDAR header 倒退数：0；
+重复数：0
+输入 IMU header 倒退数：0；
+重复数：0
+输出 header 倒退/重复数：85 / 0
+rosbag 接收时间非递增数：0
+与输入 LiDAR 帧数对照：输出 1710 条 /Odometry；输入 1714 帧。
+输出轨迹按 header 时间排序后导出；由于原始发布顺序有倒退，
+该次结果只用于离线轨迹诊断，不能证明实时连续性。
+
+起点静止窗口：B2 相对时间 10-20 秒，
+100 个样本；终点静止窗口：160-170 秒，
+101 个样本。窗口依据 IMU 低运动区间选择，不是独立定位真值。
+起点窗口位置标准差 X/Y/Z：[2.772901, 3.931805, 2.494213] mm
+终点窗口位置标准差 X/Y/Z：[2.996099, 3.443461, 3.489986] mm
+起点窗口姿态标准差：[0.064838, 0.054068, 0.047319] 度
+终点窗口姿态标准差：[0.064833, 0.082275, 0.050646] 度
+
+起终点窗口平均位姿差（转换到起点 IMU/body 轴向，base_link 名义外参）：
+前/左/上位移：[49.466317, -29.073541, -14.279331] mm
+水平位移模长：57.38 mm
+roll/pitch/yaw 差：[0.297761, -0.267264, -0.896492] 度
+
+B2 卷尺真值仅测得“向左 7 mm”，未测前后位移和航向角。
+以 +Y 为左，FAST-LIO 估计的左向分量为 -29.07 mm；
+相对已测左向真值的差为 -36.07 mm。
+这只是单一分量对照，不足以判定完整 3 cm 位置 / 0.5 度航向目标通过与否；
+名义外参未标定、起终点窗口选择及环境动态也会影响结果。
+
+PCD 地图：/home/xiaowu/active_perception/B2_analysis/B2_fastlio_map.pcd
+地图点数：137052（有限 XYZ 点 137052）
+地图坐标系：camera_init；地图通过 FAST-LIO /map_save 服务生成。
+俯视图可见主密集区域外有稀疏点簇；用于正式建图前建议在 CloudCompare/RViz 中复核。
+
+轨迹导出：
+  B2_fastlio_trajectory_body.tum：camera_init -> body（body 为雷达 IMU 坐标系）
+  B2_fastlio_trajectory_base_nominal.tum：名义外参换算后的 base_link 轨迹，仅用于参考
+图表：
+  B2_fastlio_trajectory.png：XY 轨迹和高度变化
+  B2_fastlio_map.png：点云地图俯视图，颜色表示高度
+
+判读限制：
+1. FAST-LIO2 不含回环优化，闭环残差会随累计漂移保留。
+2. `base_link` 通过尚未标定的名义安装外参从 IMU 位姿换算。
+3. B2 仅有向左 7 mm 的卷尺测量；前后位移和航向真值缺失。
+4. 这是离线单次包回放结果，不代表实时负载或五次实车闭环验收。

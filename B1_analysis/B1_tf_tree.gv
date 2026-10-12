@@ -1,0 +1,24 @@
+// 用途：生成 B1 包内 /tf_static 坐标关系图；同时标出每条边的含义及不完整分支。
+digraph G {
+graph [fontname="Noto Sans CJK SC", labelloc="t", label="B1 静态 TF 树及变换含义（仅显示 /tf_static）"];
+node [fontname="Noto Sans CJK SC"];
+edge [fontname="Noto Sans CJK SC"];
+rankdir=TB;
+nodesep=0.55;
+ranksep=0.75;
+
+"base_link" -> "column_base_link"[label="升降柱底座相对车体的位置\nz = 0.179 米"];
+"base_link" -> "lidar_link"[label="雷达点云原点相对车体的安装外参\n(0.2175, 0, 0.226) 米；名义值待标定"];
+"lidar_link" -> "livox_frame"[label="雷达 IMU 原点相对点云原点的固定偏移\n(0.011, 0.02329, -0.04412) 米"];
+"tilt_link" -> "camera_body_link"[label="相机机身相对 Tilt 端的安装关系\n本包静态值不代表实际云台姿态"];
+"camera_body_link" -> "camera_link"[label="相机参考系相对机身的固定偏移\nz = 0.02013 米"];
+
+subgraph cluster_note {
+  label="注意：tilt_link 分支未连接到 base_link；包内没有 /joint_states 或动态 /tf\n父 -> 子：平移表示子坐标系原点在父坐标系中的位置；旋转表示子相对父的朝向。未标旋转者均为单位旋转。";
+  fontname="Noto Sans CJK SC";
+  style=dashed;
+  "tilt_link";
+  "camera_body_link";
+  "camera_link";
+}
+}

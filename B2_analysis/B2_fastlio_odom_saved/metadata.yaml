@@ -1,0 +1,30 @@
+## 用途：rosbag2 元数据。其对应数据库 B2_fastlio_odom_saved_0.db3，
+## 保存 B2 单圈 FAST-LIO 复测的 /Odometry 输出；PCD 地图通过
+## 同一 FAST-LIO 运行中的 /map_save 服务保存为 B2_fastlio_map.pcd。
+## 输出 header 时间倒退，因此轨迹仅用于离线诊断，不作实时性验收。
+rosbag2_bagfile_information:
+  version: 5
+  storage_identifier: sqlite3
+  duration:
+    nanoseconds: 161907773971
+  starting_time:
+    nanoseconds_since_epoch: 1791732171236529147
+  message_count: 1710
+  topics_with_message_count:
+    - topic_metadata:
+        name: /Odometry
+        type: nav_msgs/msg/Odometry
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 1710
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - B2_fastlio_odom_saved_0.db3
+  files:
+    - path: B2_fastlio_odom_saved_0.db3
+      starting_time:
+        nanoseconds_since_epoch: 1791732171236529147
+      duration:
+        nanoseconds: 161907773971
+      message_count: 1710

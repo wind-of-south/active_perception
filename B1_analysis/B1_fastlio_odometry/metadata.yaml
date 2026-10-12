@@ -1,0 +1,29 @@
+## 用途：rosbag2 元数据。其对应数据库 B1_fastlio_odometry_0.db3
+## 保存首轮正常速率 FAST-LIO 诊断运行的 /Odometry 输出；
+## 该轮输出有 header 时间戳倒退，仅供时间顺序诊断。
+rosbag2_bagfile_information:
+  version: 5
+  storage_identifier: sqlite3
+  duration:
+    nanoseconds: 590466678768
+  starting_time:
+    nanoseconds_since_epoch: 1791720336006025895
+  message_count: 6145
+  topics_with_message_count:
+    - topic_metadata:
+        name: /Odometry
+        type: nav_msgs/msg/Odometry
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 6145
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - B1_fastlio_odometry_0.db3
+  files:
+    - path: B1_fastlio_odometry_0.db3
+      starting_time:
+        nanoseconds_since_epoch: 1791720336006025895
+      duration:
+        nanoseconds: 590466678768
+      message_count: 6145

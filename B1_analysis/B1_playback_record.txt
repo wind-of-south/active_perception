@@ -1,0 +1,106 @@
+B1 静态数据包回放记录
+====================
+用途：记录 B1 原始 rosbag 的内容、话题频率、静态 TF 含义、回放检查
+以及后续 IMU/FAST-LIO 测量产物索引；用于理解这份数据和复现实验。
+
+数据来源：
+  路径：/home/xiaowu/active_perception/交付/B1_static_10min_2026-09-23
+  完整性：CHECKSUMS.sha256 中列出的文件均校验通过
+  存储格式：sqlite3
+  时长：614.778609882 秒（约 10 分 14.8 秒）
+  消息总数：129,105 条
+
+数据包内记录的话题：
+  话题           类型                                  消息数    消息数/时长
+  /livox/lidar   livox_ros_driver2/msg/CustomMsg        6,148    10.00035 Hz
+  /livox/imu     sensor_msgs/msg/Imu                  122,956   200.00045 Hz
+  /tf_static     tf2_msgs/msg/TFMessage                     1   静态变换消息
+
+回放检查：
+  /livox/lidar：实时回放期间测得约 9.988 Hz
+  /livox/imu：实时回放期间测得约 200.1 Hz
+  回放时可见 /clock、/livox/lidar、/livox/imu 和 /tf_static
+
+静态 TF 树：
+  base_link
+  ├── column_base_link     升降柱底座安装位置参考系
+  └── lidar_link           雷达点云坐标系
+      └── livox_frame      雷达内置 IMU 坐标系
+
+  tilt_link                云台 Tilt 关节的子坐标系
+  └── camera_body_link     相机机身参考系
+      └── camera_link      相机参考坐标系
+
+  在此数据包的 /tf_static 中，tilt_link 未连接到 base_link。
+  数据包未记录 /joint_states 或动态 /tf，因此无法补出这段关节变换。
+
+/tf 变换方向和数值的读法：
+  对于“父坐标系 -> 子坐标系”，平移向量表示子坐标系原点在父坐标系
+  中的位置；旋转表示子坐标系相对于父坐标系的朝向。ROS 的 base_link
+  约定为 x 朝前、y 朝左、z 朝上。以下描述的是坐标系间的几何关系，
+  不是传感器测量值。
+
+/tf_static 中每条变换的含义：
+  base_link -> lidar_link
+    含义：雷达点云原点相对于车体参考原点的安装外参。按 base_link
+    轴向，雷达原点名义上在车体原点前方 0.2175 m、上方 0.226 m；
+    两坐标系轴向相同。此值是名义安装值，待标定。
+    平移（米）：x=0.2175，y=0.0，z=0.226
+    旋转（四元数 x,y,z,w）：0，0，0，1
+  lidar_link -> livox_frame
+    含义：雷达内置 IMU 原点相对于点云雷达原点的固定安装偏移；
+    两坐标系轴向相同。IMU 原点在 lidar_link 中的位置由下列向量给出。
+    平移（米）：x=0.011，y=0.02329，z=-0.04412
+    旋转（四元数 x,y,z,w）：0，0，0，1
+  base_link -> column_base_link
+    含义：升降柱底座参考原点相对于车体参考原点的位置；记录值位于
+    base_link 原点上方 0.179 m，旋转为单位旋转。
+    平移（米）：x=0，y=0，z=0.179
+  tilt_link -> camera_body_link
+    含义：相机机身参考系相对于云台 Tilt 端参考系的安装关系。云台运动
+    时此相对关系应随关节角变化；本包没有动态关节 TF，所以这里的静态
+    变换不能表示实际云台姿态，也不能把 tilt_link 接回车体 TF 树。
+    平移（米）：x=0.0889，y=0，z=0.037
+  camera_body_link -> camera_link
+    含义：相机参考系相对于相机机身参考系的固定安装偏移；记录值沿
+    camera_body_link 的 z 轴为 0.02013 m。此变换本身不提供相机相对于
+    车体的完整位姿。
+    平移（米）：x=0，y=0，z=0.02013
+
+说明：
+  * 上述包内频率由话题消息数除以数据包时长计算；实时频率是在回放
+    期间以短时间窗口测得。
+  * B1 录制时云台舵机未上力矩，相机相关静态变换可能与云台实际姿态
+    不符；雷达点云和 IMU 数据不受影响。
+  * 此图仅展示 /tf_static 中的坐标系关系，不是完整机器人 TF 树；
+    B1 未包含缺失的关节状态和动态变换。
+  * 已完成 IMU 原始数据统计，结果见 B1_imu_stats.txt，逐分钟结果见
+    B1_imu_1min.csv；可用 analyze_b1_imu.py 从 rosbag 重新计算。
+  * FAST-LIO 已用于静止位姿测量；详见下方的测量配置和产物索引。
+
+TF 树图及其源文件：
+  B1_tf_tree.pdf
+  B1_tf_tree.gv
+
+IMU 统计产物：
+  B1_imu_stats.txt
+  B1_imu_1min.csv
+  B1_imu_allan.csv
+  B1_imu_allan.png
+  analyze_b1_imu.py
+
+FAST-LIO 静止位姿测量：
+  b1_mid360.yaml：B1 专用配置（副本），未修改第三方仓库配置
+  B1_fastlio_odometry/：首轮实时速率诊断数据；header 时间戳有倒退，
+    不作为正式静止抖动结果
+  B1_fastlio_odometry_slow/：半速完整回放记录，6143 条 Odometry；
+    按 header 时间覆盖 614.20 秒，原始输出顺序有 169 次时间戳倒退
+  B1_timestamp_order.txt：原始 B1 雷达和 IMU header 时间均严格递增；
+    输出 Odometry header 有 169 次倒退，rosbag 接收时间均递增。
+    仅能确认异常出现在输出记录中，具体根因尚未确定。
+  B1_fastlio_static_jitter.txt、B1_fastlio_1min.csv：
+    半速运行的离线静态分布统计；首分钟后的位置和姿态波动仍超过目标；
+    不代表实时输出通过验收
+  B1_fastlio_pose.png：按时间排序后的 base_link 名义位姿变化图
+  analyze_b1_fastlio_odometry.py：位姿统计脚本
+  check_b1_timestamp_order.py：输入与输出 header 时间顺序检查脚本
